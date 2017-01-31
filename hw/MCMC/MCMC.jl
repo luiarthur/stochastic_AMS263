@@ -66,33 +66,4 @@ function metropolis(curr::Vector{Float64}, candΣ::Matrix{Float64},
 end
 
 
-function logit(p::Float64,a::Float64,b::Float64)
-  return log((p-a) / (b-p))
-end
-
-function invlogit(x::Float64,a::Float64,b::Float64)
-  return (b-a) * exp(x) / (exp(x)+1)^2
-end
-
-function metTransform(curr::Float64, ll, lp, cs::Float64, 
-                      f, f_inv)
-#  ll() =  
-end
-
-#function metLogit(curr::Float64, ll, lp, cs::Float64, a::Float64, b::Float64)
-#
-#  function lp_logit(logit_p::Float64)
-#    const p = invlogit(logit_p)
-#    const logJ = -logit_p + 2.0*log(p)
-#    return lp(p) + logJ
-#  end
-#  
-#  ll_logit(logit_p::Float64) = ll(invlogit(logit_p))
-#
-#  return invlogit(metropolis(logit(curr),ll_logit,lp_logit,cs))
-#end
-
-
-
-
 end # module
