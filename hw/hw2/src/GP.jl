@@ -8,7 +8,7 @@ export fit
 include("../../MCMC/MCMC.jl")
 
 function exp_cov(D::Matrix{Float64}, ϕ::Float64, α::Float64)
-  return α * exp(-ϕ * D )
+  return α * exp(-ϕ * D)
   #return α * exp(-ϕ * D .^ (1.5))
 end
 
@@ -57,7 +57,7 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
   end
 
   # param: [σ², ϕ, α]
-  const init = [1.0, (a_ϕ + b_ϕ) / 2.0, 1.0]
+  const init = [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
 
   return MCMC.gibbs(init, update, B, burn, printFreq=printFreq)
 end

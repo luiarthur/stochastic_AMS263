@@ -12,7 +12,7 @@ sig2_truth = .01
 y = vec(g(X) + randn(n)*sqrt(sig2_truth) )
 R"plot($X,$y,pch=20)";
 
-@time out = GP.fit(y, X, [.1,1,1]*1E-3, 2000, 10000, printFreq=100, b_ϕ=1.0,
+@time out = GP.fit(y, X, [1,1,1]*1E-3, 2000, 10000, printFreq=100, b_ϕ=1.0,
                    a_σ=2.,b_σ=.01);
 
 params = hcat(out...)'
@@ -29,8 +29,8 @@ ex = mean(pred,2)
 ci = mapslices(p -> quantile(p,[.025,.975]),pred,2)
 
 R"plot($X,$y,pch=20,col='red',ylim=range($ci),xlim=range($X_new))";
-R"lines($X_new,$ex,col='blue',pch=20, lwd=2, lty=2)"
-R"lines($X_new,$f,col='grey',pch=20, lwd=2)"
+R"lines($X_new,$ex,col='blue',pch=20, lwd=2)"
+R"lines($X_new,$f,col='grey',pch=20, lwd=2, lty=2)"
 R"color.btwn($X_new, $ci[,1], $ci[,2], from=-4, to=4, col=rgb(0,0,.5,.2))"
 
 #=
