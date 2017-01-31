@@ -16,7 +16,6 @@ R"plot($X,$y,pch=20)";
                    a_σ=2.,b_σ=.01);
 
 params = hcat(out...)'
-acc = length(unique(out,1)) / size(out,1)
 
 R"plotPosts($params,cnames=c(paste0('sig2 (truth=',$sig2_truth,')'),'phi','alpha'))";
 

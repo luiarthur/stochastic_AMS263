@@ -59,7 +59,9 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
   # param: [σ², ϕ, α]
   const init = [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
 
-  return MCMC.gibbs(init, update, B, burn, printFreq=printFreq)
+  const out = MCMC.gibbs(init, update, B, burn, printFreq=printFreq)
+  println("\tAcceptance Rate: ", length(unique(out))/length(out))
+  return out
 end
 
 sym(M::Matrix{Float64}) = (M + M') / 2
