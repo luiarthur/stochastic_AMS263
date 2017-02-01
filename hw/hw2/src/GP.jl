@@ -20,7 +20,7 @@ const dist = Euclidean()
 function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
              B::Int, burn::Int; printFreq=0,
              a_σ::Float64=2.0, b_σ::Float64=1.0,
-             a_ϕ::Float64=0.0, b_ϕ::Float64=1.0,
+             a_ϕ::Float64=0.0, b_ϕ::Float64=10.0,
              a_a::Float64=2.0, b_a::Float64=1.0)
 
   assert(length(y) == size(X,1))
@@ -30,22 +30,14 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
   const cs_matrix = Matrix(Diagonal(cs))
   const Iₙ = eye(n)
 
-
-
   # param: [σ², ϕ, α]
   function trans_param(v::Vector{Float64})
-    logit(p::Float64,a::Float64,b::Float64) = log( (p-a)/ (b-p) )
-    return [log(v[1]), logit(v[2],a_ϕ,b_ϕ), log(v[3])]
+    return [log(v[1]), MCMC.logit(v[2],a_ϕ,b_ϕ), log(v[3])]
   end
 
   function inv_trans_param(x::Vector{Float64})
-    inv_logit(x::Float64,a::Float64=0.0,b::Float64=1.0) = (b*exp(x)+a) / (1+exp(x))
-    return [exp(x[1]), inv_logit(x[2],a_ϕ,b_ϕ), exp(x[3])]
+    return [exp(x[1]), MCMC.inv_logit(x[2],a_ϕ,b_ϕ), exp(x[3])]
   end
-
-  lp_log_gamma(lx::Float64,a::Float64,b::Float64) = a*lx - b*exp(lx)
-  lp_log_inv_gamma(lx::Float64,a::Float64,b::Float64) = -a*lx - b*exp(-lx)
-  lp_log_logit_unif(x::Float64,a::Float64=0.0,b::Float64=1.0) = x - 2*log(exp(x)) 
 
   # param: [σ², ϕ, α]
   function update(param::Vector{Float64})
@@ -57,9 +49,9 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
     end
 
     function lp(t_v::Vector{Float64})
-      return lp_log_inv_gamma(t_v[1],a_σ,b_σ) +
-             lp_log_logit_unif(t_v[2],a_ϕ,b_ϕ) +
-             lp_log_inv_gamma(t_v[3],a_a,b_a)
+      return MCMC.lp_log_invgamma(t_v[1],a_σ,b_σ) +
+             MCMC.lp_logit_unif(t_v[2]) +
+             MCMC.lp_log_invgamma(t_v[3],a_a,b_a)
     end
 
     return inv_trans_param(MCMC.metropolis(trans_param(param), cs_matrix, ll, lp))
