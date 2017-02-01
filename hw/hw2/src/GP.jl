@@ -46,6 +46,7 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
       const out = if param[1]>0 && a_ϕ < param[2] < b_ϕ && param[3]>0
         const lp_σ = (-a_σ-1)*log(param[1]) - b_σ/param[1] # IG
         const lp_α = (-a_a-1)*log(param[3]) - b_a/param[3] # IG
+        #const lp_α = (a_a-1)*log(param[3]) - b_a*param[3] # Gamma
         lp_α + lp_σ
       else
         -Inf
