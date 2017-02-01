@@ -16,6 +16,7 @@ const dist = Euclidean()
 
 # Assumes y,X are centered and scaled
 
+
 function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
              B::Int, burn::Int; printFreq=0,
              a_σ::Float64=2.0, b_σ::Float64=1.0,
@@ -28,6 +29,11 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
   const D = pairwise(dist, X')
   const cs_matrix = Matrix(Diagonal(cs))
   const Iₙ = eye(n)
+
+  #function metropolis_GP(curr::Vector{Float64}, ll, lp)
+  #  const cand = rand( MvNormal(curr, cs_matrix) )
+  #  #return MCMC.metropolis(param, cs_matrix, ll, lp)
+  #end
 
   function update(param::Vector{Float64})
     # param: [σ², ϕ, α]

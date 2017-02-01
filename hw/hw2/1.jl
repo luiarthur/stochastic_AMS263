@@ -4,7 +4,7 @@ srand(263);
 
 include("src/GP.jl")
 
-g(X::Matrix{Float64}) = .3 + .4 * X + .5*sin(2.7*X) + 1.1 ./ (1+X.^2)
+g(X::Matrix{Float64}) = .3 + .4*X + .5*sin(2.7*X) + 1.1 ./ (1+X.^2)
 
 n = 100
 X = sort(randn(n,1),1)
@@ -12,8 +12,8 @@ sig2_truth = .01
 y = vec(g(X) + randn(n)*sqrt(sig2_truth) )
 R"plot($X,$y,pch=20)";
 
-@time out = GP.fit(y, X, [1,1,1]*1E-3, 2000, 10000, printFreq=100, b_ϕ=1.0,
-                   a_σ=2.,b_σ=.01);
+@time out = GP.fit(y, X, [.001,.01,.001], 2000, 20000, printFreq=100, 
+                   b_ϕ=1.0, a_σ=3.0, b_σ=2.0);
 
 params = hcat(out...)'
 

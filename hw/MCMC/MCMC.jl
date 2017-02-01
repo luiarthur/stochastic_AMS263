@@ -35,7 +35,7 @@ function metropolis(curr::Float64, cs::Float64,
 
   const cand = rand( Distributions.Normal(curr,cs) )
 
-  new_state = if g(cand) - g(curr) > log(rand())
+  const new_state = if g(cand) - g(curr) > log(rand())
     cand
   else
     curr
@@ -67,3 +67,4 @@ end
 
 
 end # module
+
