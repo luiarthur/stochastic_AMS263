@@ -71,14 +71,14 @@ logit(p::Float64,a::Float64=0.0,b::Float64=1.0) = log( (p-a)/ (b-p) )
 
 function lp_log_gamma(log_x::Float64, shape::Float64, rate::Float64)
   #shape*log(rate) - lgamma(shape) + shape*log_x - rate*exp(log_x)
-  const abs_J = log_x
-  return logpdf(Gamma(shape,1/rate), exp(log_x)) + abs_J
+  const log_abs_J = log_x
+  return logpdf(Gamma(shape,1/rate), exp(log_x)) + log_abs_J
 end
 
 function lp_log_invgamma(log_x::Float64, a::Float64, b_numer::Float64)
   #a*log(b_numer) - lgamma(a) - a*log_x - b_numer*exp(-log_x)
-  const abs_J = log_x
-  return logpdf(InverseGamma(a,b_numer), exp(log_x)) + abs_J
+  const log_abs_J = log_x
+  return logpdf(InverseGamma(a,b_numer), exp(log_x)) + log_abs_J
 end
 
 #lp_logit_unif(logit_u::Float64) = logit_u - 2*log(1+exp(logit_u)) 

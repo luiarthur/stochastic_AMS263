@@ -13,6 +13,7 @@ y = vec(g(X) + randn(n)*sqrt(sig2_truth) )
 R"plot($X,$y,pch=20)";
 
 @time out = GP.fit(y, X, [.1,.1,.1], 2000, 20000, printFreq=100)
+#@time out = GP.fit(y, X, [.1,.1,.1], 1000, 1000, printFreq=100)
 
 params = hcat(out...)';
 R"plotPosts($params,cnames=c(paste0('sig2 (truth=',$sig2_truth,')'),'phi','alpha'))";
@@ -31,5 +32,5 @@ R"lines($X_new,$f,col='grey',pch=20, lwd=2, lty=2)";
 R"color.btwn($X_new, $ci[,1], $ci[,2], from=-4, to=4, col=rgb(0,0,.5,.2))";
 
 #=
-include("1.jl")
+include("gp.jl")
 =#
