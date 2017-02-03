@@ -5,7 +5,7 @@ using Distances
 
 export fit
 
-include("../../MCMC/MCMC.jl")
+include("../../../MCMC/MCMC.jl")
 
 function exp_cov(D::Matrix{Float64}, ϕ::Float64, α::Float64)
   return α * exp(-ϕ * D)

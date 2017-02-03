@@ -2,7 +2,7 @@ using RCall
 R"library(rcommon)";
 srand(263);
 
-include("src/GP.jl")
+include("GPs/GP.jl")
 
 g(X::Matrix{Float64}) = .3 + .4*X + .5*sin(2.7*X) + 1.1 ./ (1+X.^2)
 

@@ -3,7 +3,7 @@ module KernelConvolution
 using Distributions, Distances
 
 export fit
-include("../../MCMC/MCMC.jl")
+include("../../../MCMC/MCMC.jl")
 
 gaussian_kernel(d::Float64) = pdf(Normal(), d)
 

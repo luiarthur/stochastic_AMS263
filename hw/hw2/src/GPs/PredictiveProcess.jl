@@ -4,7 +4,7 @@ using Distributions, Distances
 
 export fit
 
-include("../../MCMC/MCMC.jl")
+include("../../../MCMC/MCMC.jl")
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 
