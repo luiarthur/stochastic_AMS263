@@ -5,6 +5,7 @@ using Distributions, Distances
 export fit
 
 include("../../../MCMC/MCMC.jl")
+include("autofit.jl")
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 
@@ -12,9 +13,37 @@ function exp_cov(D::Matrix{Float64}, ϕ::Float64, α::Float64)
   return α * exp(-ϕ * D)
 end
 
+function autofit(y::Vector{Float64},X::Matrix{Float64},u::Matrix{Float64},B::Int;
+                 burn::Int=0, cs::Matrix{Float64}=eye(3),
+                 printFreq::Int=0, init::Vector{Float64}=zeros(3),
+                 a_σ::Float64=2.0, b_σ::Float64=1.0,
+                 a_ϕ::Float64=0.0, b_ϕ::Float64=10.0,
+                 a_a::Float64=2.0, b_a::Float64=1.0,
+                 dist=Euclidean,
+                 max_autotune::Int=20, 
+                 window::Int=500,
+                 target::Float64=.25,
+                 target_lower::Float64=.25,
+                 target_upper::Float64=.40,
+                 k::Float64=2.5)
+
+  function f(cs::Matrix{Float64}, B::Int, burn::Int, 
+             init::Vector{Float64}, printFreq::Int)
+    return fit(y,X,u,cs,B,burn,printFreq=printFreq,init=init,dist=dist,
+               a_σ=a_σ, b_σ=b_σ, a_ϕ=a_ϕ, b_ϕ=b_ϕ, a_a=a_a, b_a=b_a)
+  end
+
+  return AUTOFIT(f,B,3,
+                 burn=burn, printFreq=printFreq, max_autotune=max_autotune,
+                 window=window, target=target, target_lower=target_lower,
+                 target_upper=target_upper, k=k)
+end
+
+
 function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
-             cs::Vector{Float64}, # [cs_σ², cs_ϕ, cs_α]
+             cs::Matrix{Float64}, # [cs_σ², cs_ϕ, cs_α]
              B::Int, burn::Int; printFreq=0,
+             init::Vector{Float64}=zeros(3),
              a_σ::Float64=2.0, b_σ::Float64=1.0,
              a_ϕ::Float64=0.0, b_ϕ::Float64=10.0,
              a_a::Float64=2.0, b_a::Float64=1.0,
@@ -27,7 +56,6 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
   const m = size(u,1)
   const Iₙ = eye(n)
   const Iₘ = eye(m)
-  const cs_matrix = Matrix(Diagonal(cs))
 
   const D_XU = pairwise(dist(), [X;u]')
   const D_C = D_XU[1:n, (n+1):end]
@@ -69,13 +97,17 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
              MCMC.lp_log_invgamma(t_v[3],a_a,b_a)
     end
 
-    return inv_trans_param(MCMC.metropolis(trans_param(param), cs_matrix, ll, lp))
+    return inv_trans_param(MCMC.metropolis(trans_param(param), cs, ll, lp))
   end
 
   # param: [σ², ϕ, α]
-  const init = [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
+  const INIT = if init==zeros(3)
+    [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
+  else
+    init
+  end
 
-  const out = MCMC.gibbs(init, update, B, burn, printFreq=printFreq)
+  const out = MCMC.gibbs(INIT, update, B, burn, printFreq=printFreq)
   println("\tAcceptance Rate: ", length(unique(out))/length(out))
   return out
 end

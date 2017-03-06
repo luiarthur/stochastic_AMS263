@@ -18,7 +18,8 @@ u = reshape(seq(minimum(X), maximum(X), m), m, 1)
 R"plot($X,$y,pch=20)";
 
 
-@time out = KernelConvolution.fit(y, X, u, [.1,.1], 1000, 20000, printFreq=100);
+#@time out = KernelConvolution.fit(y, X, u, eye(2)*.1, 1000, 20000, printFreq=100);
+@time out = KernelConvolution.autofit(y, X, u, 2000, burn=1000, printFreq=100);
 
 
 params = hcat(out...)';
