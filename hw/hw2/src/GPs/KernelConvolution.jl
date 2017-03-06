@@ -6,14 +6,17 @@ export fit
 include("../../../MCMC/MCMC.jl")
 include("autofit.jl")
 
-gaussian_kernel(d::Float64) = pdf(Normal(0,.1), d)
+#gaussian_kernel(s::Float64, dist::Float64) = pdf(Normal(0,s), dist)
+gaussian_kernel(dist::Float64) = pdf(Normal(0,.03), dist)
 
 function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
              cs::Matrix{Float64}, # [cs_σ², cs_τ²]
              B::Int, burn::Int; printFreq=0,
              init::Vector{Float64}=zeros(2),
              a_σ::Float64=2.0, b_σ::Float64=1.0,
+             #a_ϕ::Float64=2.0, b_::Float64=10.0,
              a_τ::Float64=2.0, b_τ::Float64=1.0,
+             #a_a::Float64=2.0, b_b::Float64=1.0,
              kernel=gaussian_kernel,
              dist=euclidean)
 
