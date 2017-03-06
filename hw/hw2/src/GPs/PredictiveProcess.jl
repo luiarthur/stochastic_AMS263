@@ -150,5 +150,5 @@ Need to make corrections on website: http://luiarthur.github.io/ucsc_notes/advBa
 2. The posterior for mean function at the knot points is 
     - $\mu^* \v y,\sigma^2,\tau^2,\phi \sim \text{MVN}(S^{-1}H'y/\sigma^2,S^{-1})$
 3. At the end of the Predictive Process section, it should be: 
-- $S =K^{*-1}+\frac{H’H}{\sigma^2}$
+    - $S =K^{*-1}+\frac{H’H}{\sigma^2}$
 =#
