@@ -3,7 +3,7 @@ module GP
 using Distributions
 using Distances
 
-export fit
+export fit, autofit
 
 include("../../../MCMC/MCMC.jl")
 
@@ -17,8 +17,9 @@ const dist = Euclidean()
 # Assumes y,X are centered and scaled
 
 
-function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
+function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Matrix{Float64},
              B::Int, burn::Int; printFreq=0,
+             init::Vector{Float64}=[.0,.0,.0],
              a_σ::Float64=2.0, b_σ::Float64=1.0,
              a_ϕ::Float64=0.0, b_ϕ::Float64=10.0,
              a_a::Float64=2.0, b_a::Float64=1.0)
@@ -27,7 +28,6 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
 
   const n = size(X,1)
   const D = pairwise(dist, X')
-  const cs_matrix = Matrix(Diagonal(cs))
   const Iₙ = eye(n)
 
   # param: [σ², ϕ, α]
@@ -54,16 +54,59 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, cs::Vector{Float64},
              MCMC.lp_log_invgamma(t_v[3],a_a,b_a)
     end
 
-    return inv_trans_param(MCMC.metropolis(trans_param(param), cs_matrix, ll, lp))
+    return inv_trans_param(MCMC.metropolis(trans_param(param), cs, ll, lp))
   end
 
   # param: [σ², ϕ, α]
-  const init = [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
+  const INIT = if init==[0.,0.,0.]
+    [b_σ/(a_σ-1.0), (a_ϕ + b_ϕ)/2.0, b_a/(a_a-1.0)]
+  else
+    init
+  end
 
-  const out = MCMC.gibbs(init, update, B, burn, printFreq=printFreq)
+  const out = MCMC.gibbs(INIT, update, B, burn, printFreq=printFreq)
   println("\tAcceptance Rate: ", length(unique(out))/length(out))
   return out
 end
+
+function autofit(y::Vector{Float64}, X::Matrix{Float64}, B::Int; 
+                 burn::Int=0, cs::Matrix{Float64}=eye(3),
+                 printFreq::Int=0, init::Vector{Float64}=[0.,0.,0.],
+                 a_σ::Float64=2.0, b_σ::Float64=1.0,
+                 a_ϕ::Float64=0.0, b_ϕ::Float64=10.0,
+                 a_a::Float64=2.0, b_a::Float64=1.0,
+                 max_autotune::Int=20, 
+                 window::Int=500,
+                 target::Float64=.25,
+                 target_lower::Float64=.25,
+                 target_upper::Float64=.40,
+                 k::Float64=2.5)
+
+  INIT = init
+
+  function adjust(COR::Matrix{Float64},multiplier::Float64=1.0,it::Int=0)
+    const out = fit(y,X,COR*multiplier,window,0,printFreq=printFreq,init=INIT,
+                    a_σ=a_σ, b_σ=b_σ, a_ϕ=a_ϕ, b_ϕ=b_ϕ, a_a=a_a, b_a=b_a)
+
+    INIT = out[end]
+    const acc_rate = length(unique(out)) / length(out)
+    const params = hcat(out...)'
+    const new_COR = cor(params)
+
+    if target_lower<acc_rate<target_upper || it==max_autotune
+      return COR*multiplier
+    else
+      const new_cs_multiplier = MCMC.autotune(acc_rate,target=target,k=k)
+      return adjust(new_COR, new_cs_multiplier*multiplier, it+1)
+    end
+  end # adjust
+
+  const CS = adjust(cs)
+
+  return fit(y,X,CS,B,0,printFreq=printFreq,init=INIT,
+             a_σ=a_σ, b_σ=b_σ, a_ϕ=a_ϕ, b_ϕ=b_ϕ, a_a=a_a, b_a=b_a)
+end
+
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 

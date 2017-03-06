@@ -4,7 +4,7 @@ My MCMC stuff
 module MCMC
 
 import Distributions: logpdf, Normal, MvNormal, InverseGamma, Gamma, Logistic
-export gibbs, metropolis
+export gibbs, metropolis, autotune
 
 
 function gibbs{T}(init::T, update, B::Int, burn::Int; 
@@ -84,5 +84,19 @@ end
 #lp_logit_unif(logit_u::Float64) = logit_u - 2*log(1+exp(logit_u)) 
 lp_logit_unif(logit_u::Float64) = logpdf(Logistic(), logit_u)
 
+
+"""
+autotune(accept::Float64, target::Float64=0.25, k::Float64=2.5)
+
+`accept`: current accpetance rate
+`target`: target accpetance rate
+`k`: some tuning parameter...
+
+Returns a factor to multiply the current proposal step size by.
+"""
+function autotune(accept::Float64; target::Float64=0.25, k::Float64=2.5)
+  return (1+(cosh(accept-target)-1)*(k-1) / 
+          (cosh(target-ceil(accept-target))-1))^sign(accept-target)
+end
 
 end # module

@@ -12,8 +12,8 @@ sig2_truth = .01
 y = vec(g(X) + randn(n)*sqrt(sig2_truth) )
 R"plot($X,$y,pch=20)";
 
-@time out = GP.fit(y, X, [.1,.1,.1], 2000, 20000, printFreq=100)
-#@time out = GP.fit(y, X, [.1,.1,.1], 1000, 1000, printFreq=100)
+#@time out = GP.fit(y, X, eye(3)*.1, 2000, 3000, printFreq=100)
+@time out = GP.autofit(y, X, 10000, printFreq=1000)
 
 params = hcat(out...)';
 R"plotPosts($params,cnames=c(paste0('sig2 (truth=',$sig2_truth,')'),'phi','alpha'))";
