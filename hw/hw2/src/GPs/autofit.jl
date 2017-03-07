@@ -16,7 +16,8 @@ function AUTOFIT(f, B::Int, dim::Int;
 
     if target_lower<acc_rate<target_upper || it==max_autotune
       #return (COR*multiplier, INIT)
-      return f(COR*multiplier, B, burn, INIT, printFreq)
+      const CS = COR*multiplier
+      return (f(CS, B, burn, INIT, printFreq),CS)
     else
       const new_INIT = out[end]
       const params = hcat(out...)'
