@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# -s        =>  create standalone file (in this case report.tex latex file)
+# --toc     =>  create table of contents
+# --natbib  =>  use the natbib package in latex
+# -o        =>  output file name
+
+pandoc hw5.md -s -o hw5.tex
+
+pdflatex hw5.tex
+bibtex hw5.aux
+pdflatex hw5.tex
+pdflatex hw5.tex
+rm -f *.{log,aux,nav,out,snm,toc,blg,bbl}
+rm -f hw5.tex
+
