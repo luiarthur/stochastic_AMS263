@@ -7,18 +7,22 @@ gen.default.prior <- function(K) {
   default.prior
 }
 
+pow <- function(X,n) {
+  if (n==1) X else pow(X %*% X, n-1)
+}
+
 rdir <- function(A) { # A is a matrix of alphas
   N <- nrow(A)
   K <- ncol(A)
   R <- matrix(rgamma(N*K,A,1),N,K)
-  matrix(R,N,K) / rowSums(R)
+  R / rowSums(R)
 }
 
 
 # y is data
 # K is number of states
 # B is number of MCMC samples
-hmm <- function(y, K=2, B=2000, prior=gen.default.prior(K)) {
+hmm <- function(y, K=2, B=2000, burn=100, prior=gen.default.prior(K)) {
 
   N <- length(y)
 
@@ -33,12 +37,10 @@ hmm <- function(y, K=2, B=2000, prior=gen.default.prior(K)) {
     z <- param$z
     A <- matrix(NA,K,K)
 
-    for (i in 1:K) {
-      for (j in 1:K) {
-        A[i,j] <- prior$a[i,j]
-        for (n in 2:N) {
-          if (z[n-1]==i && z[n]==j) A[i,j] <- A[i,j] + 1
-        }
+    for (i in 1:K) for (j in 1:K) {
+      A[i,j] <- prior$a[i,j]
+      for (n in 2:N) {
+        if (z[n-1]==i && z[n]==j) A[i,j] <- A[i,j] + 1
       }
     }
 
@@ -47,34 +49,34 @@ hmm <- function(y, K=2, B=2000, prior=gen.default.prior(K)) {
 
   sample.z <- function(param) {
     
-    z <- param$z
     Q <- param$Q
     lam <- param$lam
 
-    d.forecast <- function(i) {
-      if (i==1) {
-        dpois(y[i],lam[1])
-      } else {
-        sum(dpois(y[i],lam) * Q[z[i-1],])
-      }
+    # P[i,k] = p(z_i=k | Y_i)
+    P <- matrix(NA, N, K)
+
+    # For identifiability, set z_1 = 1
+    #P[1,] <- c(1,rep(0,K-1))
+    # Set the first state to have prob of the stationary distribution
+    P[1,] <- pow(Q,30)[1,]
+    for (i in 2:N) {
+      # Prediction Step
+      pred <- P[i-1,] %*% Q
+      # Update Step
+      updt <- dpois(y[i],lam)
+
+      P[i,] <- pred * updt
     }
 
-    # z_t | Y_{t-1}, etc \propto 
-    # sum_{k=1}^m { p(z_t|z_{t-1}=k,etc) \times p(z_{t-1}=k|Y_{t-1},etc) }
-    d.pred <- function(s,i) {
-      sapply(1:K, function(k) {
-        # FIXME
-        #Q[k,] * if (i==1) 1 else d.z(i-1)
-      })
+    # Smoothing
+    z <- double(N)
+    z[N] <- sample(1:K, 1, prob=P[N,])
+    for (i in (N-1):1) {
+      p <- P[i,] * Q[,z[i+1]]
+      z[i] <- sample(1:K, 1, prob=p)
     }
 
-    # z_t | Y_t, etc \propto
-    # p(z_t | Y_{t-1}, etc) \times f(y_t | Y_{t-1}, etc_{s_t})
-    d.update <- function(s,i) {
-      p.pred(s,i) * d.forecast(i)
-    }
-
-    z
+    return(z)
   }
 
   init <- NULL
@@ -84,7 +86,8 @@ hmm <- function(y, K=2, B=2000, prior=gen.default.prior(K)) {
 
   params <- as.list(1:B)
   params[[1]] <- init
-  for (i in 2:B) {
+  for (i in 2:(B+burn)) {
+    cat("\r",i)
     curr <- params[[i-1]]
     curr$lam <- sample.lam(curr)
     curr$Q <- sample.Q(curr)
@@ -92,5 +95,5 @@ hmm <- function(y, K=2, B=2000, prior=gen.default.prior(K)) {
     params[[i]] <- curr
   }
 
-  return(params)
+  return(tail(params,B))
 }
