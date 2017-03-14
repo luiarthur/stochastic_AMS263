@@ -8,6 +8,7 @@ include("autofit.jl")
 
 #gaussian_kernel(s::Float64, dist::Float64) = pdf(Normal(0,s), dist)
 gaussian_kernel(dist::Float64) = pdf(Normal(0,.03), dist)
+sym(M::Matrix{Float64}) = (M + M') / 2
 
 function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
              cs::Matrix{Float64}, # [cs_σ², cs_τ²]
@@ -100,21 +101,31 @@ This means, y* ~ N(0, σ²Iₙ + KK'τ²)
 """
 # FIXME: NOT WORKING!!!
 function predict(post::Vector{Vector{Float64}},
-                 y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64};
+                 y::Vector{Float64}, X::Matrix{Float64}, 
+                 X_new::Matrix{Float64}, u::Matrix{Float64};
                  kernel=gaussian_kernel,
                  dist=euclidean)
   println("KernelConvolution.predict IS BROKEN & STILL NEEDS FIXING!!!")
 
   const n = size(X,1)
+  const n_new = size(X_new,1)
   const m = size(u,1)
   const Iₙ = eye(n)
   const Iₘ = eye(m)
+  const C = [ kernel(dist(X[i,:],X_new[j,:])) for i in 1:n, j in 1:n_new ]
 
   const K = [ kernel(dist(X[i,:],u[j,:])) for i in 1:n, j in 1:m ]
   const KKT = K*K'
 
+  const K_new = [ kernel(dist(X_new[i,:],u[j,:])) for i in 1:n_new, j in 1:m ]
+  const KKT_new = K_new*K_new'
+  const I_new = eye(n_new)
+
+
   function pred(sig2::Float64, tau2::Float64)
-    return rand( MvNormal(sig2*Iₙ + KKT*tau2) )
+    const S = C * sym(inv(sig2*I_new + KKT_new*tau2))
+    return rand( MvNormal(S*y, sym(sig2*I_new + KKT*tau2 - S*C')) )
+    #return rand( MvNormal(sig2*Iₙ + KKT*tau2) )
   end
 
   return map(p -> pred(p[1],p[2]), post)
