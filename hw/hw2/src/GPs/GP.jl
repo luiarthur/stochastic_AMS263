@@ -99,7 +99,8 @@ end
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 
-# predict function at new location
+# predict function at new location (f)
+# Write another pred function for observations (y)
 function predict(post::Vector{Vector{Float64}},
                  y::Vector{Float64}, X_old::Matrix{Float64},
                  X_new::Matrix{Float64})
