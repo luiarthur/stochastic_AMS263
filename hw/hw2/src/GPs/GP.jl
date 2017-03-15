@@ -99,6 +99,15 @@ end
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 
+# Distribution of y|x
+function CondNormal(x::Vector{Float64}, μx::Vector{Float64}, μy::Vector{Float64}, 
+                    Σx::Matrix{Float64}, Σy::Matrix{Float64}, Σxy::Matrix{Float64})
+  const Σxy = Σxy'
+  const S = Σyx * inv(Σxx)
+
+  return MvNormal(μy + S*(x-μx), sym(Σy-S*Σxy))
+end
+
 # predict function at new location (f)
 # Write another pred function for observations (y)
 function predict(post::Vector{Vector{Float64}},
