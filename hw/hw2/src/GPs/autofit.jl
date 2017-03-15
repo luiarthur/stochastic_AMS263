@@ -1,9 +1,22 @@
+sym(M::Matrix{Float64}) = (M + M') / 2
+
+
+# Distribution of y|x
+function CondNormal(x::Vector{Float64}, μx::Vector{Float64}, μy::Vector{Float64}, 
+                    Σx::Matrix{Float64}, Σy::Matrix{Float64}, Σyx::Matrix{Float64})
+
+  const S = Σyx * inv(sym(Σx))
+
+  return MvNormal(μy + S*(x-μx), sym(Σy-S*Σyx'))
+end
+
+
 function AUTOFIT(f, B::Int, dim::Int;
                  burn::Int=0, 
                  printFreq::Int=0, 
                  max_autotune::Int=20, 
                  window::Int=500,
-                 target::Float64=.25,
+                 target::Float64=.30,
                  target_lower::Float64=.25,
                  target_upper::Float64=.40,
                  k::Float64=2.5)
@@ -15,7 +28,6 @@ function AUTOFIT(f, B::Int, dim::Int;
     const acc_rate = length(unique(out)) / length(out)
 
     if target_lower<acc_rate<target_upper || it==max_autotune
-      #return (COR*multiplier, INIT)
       const CS = COR*multiplier
       return (f(CS, B, burn, INIT, printFreq),CS)
     else
@@ -29,3 +41,5 @@ function AUTOFIT(f, B::Int, dim::Int;
 
   return adjust(eye(dim))
 end
+
+

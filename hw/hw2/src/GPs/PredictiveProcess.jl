@@ -7,7 +7,6 @@ export fit
 include("../../../MCMC/MCMC.jl")
 include("autofit.jl")
 
-sym(M::Matrix{Float64}) = (M + M') / 2
 
 function exp_cov(D::Matrix{Float64}, ϕ::Float64, α::Float64)
   return α * exp(-ϕ * D)
@@ -70,6 +69,7 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
     return [exp(x[1]), MCMC.inv_logit(x[2],a_ϕ,b_ϕ), exp(x[3])]
   end
 
+  #const C = cov(X',u')
   # param: [σ², ϕ, α]
   function update(param::Vector{Float64})
 
@@ -81,7 +81,7 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
       const C = exp_cov(D_C, phi, alpha)
       const CT = C'
       const CTC = CT * C
-      const H = K + CTC / sig2
+      const H = sym(K + CTC / sig2)
       const Hi = inv(H)
       
       #const ld_cov = -.5 * (n*log(sig2) + logdet(H) - logdet(K))
@@ -111,30 +111,50 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
   println("\tAcceptance Rate: ", length(unique(out))/length(out))
   return out
 end
- 
-function predict_mean_at_original_locs(post::Vector{Vector{Float64}},
-                                       y::Vector{Float64}, X::Matrix{Float64},
-                                       u::Matrix{Float64}; dist=Euclidean)
+
+function predict(post::Vector{Vector{Float64}},
+                 y::Vector{Float64}, X::Matrix{Float64}, X_new::Matrix{Float64},
+                 u::Matrix{Float64}; dist=Euclidean, response::String="mean")
+
+
   const n = size(X,1)
+  const n_new = size(X_new,1)
+
+  const Iₙ = eye(n)
+  const Inew = eye(n_new)
+
   const D_XU = pairwise(dist(), [X;u]')
   const D_C = D_XU[1:n, (n+1):end]
   const D_K = D_XU[(n+1):end, (n+1):end]
+
+  const D_XnewU = pairwise(dist(), [X_new;u]')
+  const D_Cnew = D_XnewU[1:n_new, (n_new+1):end]
+  const D_Knew = D_XnewU[(n_new+1):end, (n_new+1):end]
 
   function pred(p::Vector{Float64})
     const sig2 = p[1]
     const phi = p[2]
     const a = p[3]
 
-    const K = exp_cov(D_K, phi, a)
-    const Ki = inv(K)
-    const C = exp_cov(D_C, phi, a)
-    const H = C * Ki
-    const S = Ki + H'H / sig2
-    const Si = sym(inv(S))
+    const C_new = exp_cov(D_Cnew,phi,a) 
+    const Ki_new = inv(exp_cov(D_Knew,phi,a))
+    const C = exp_cov(D_C,phi,a) 
+    const Ki = inv(exp_cov(D_K,phi,a))
+    #const Q = exp_cov(D_XnewX,phi,a)
+    const Ku = exp_cov(D_XU[(n+1):end,(n+1):end],phi,a)
+    const Q = C_new*Ki_new*Ku*Ki'*C' # Note that cov(y†,y) = 
+                                     # cov(H†μ(s*),Hμ(s*)) =  H†var(μ*)H'
+                                     # where H=CK⁻¹
 
-    const mu_u = rand( MvNormal(Si*H'*y /sig2, Si) )
-    const mu_x = C * Ki * mu_u
-    return mu_x
+    const G = C_new*Ki_new*C_new' + if response == "obs"
+      sig2*Inew
+    else # response == mean function
+      Inew*1E-10
+    end
+
+    const MVN = CondNormal(y, zeros(n), zeros(n_new), sig2*Iₙ+C*Ki*C', G, Q)
+
+    return rand(MVN)
   end
 
   return hcat(map(p -> pred(p), post)...)

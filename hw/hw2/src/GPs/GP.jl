@@ -97,22 +97,11 @@ end
 
 
 
-sym(M::Matrix{Float64}) = (M + M') / 2
-
-# Distribution of y|x
-function CondNormal(x::Vector{Float64}, μx::Vector{Float64}, μy::Vector{Float64}, 
-                    Σx::Matrix{Float64}, Σy::Matrix{Float64}, Σxy::Matrix{Float64})
-  const Σxy = Σxy'
-  const S = Σyx * inv(Σxx)
-
-  return MvNormal(μy + S*(x-μx), sym(Σy-S*Σxy))
-end
-
 # predict function at new location (f)
 # Write another pred function for observations (y)
 function predict(post::Vector{Vector{Float64}},
                  y::Vector{Float64}, X_old::Matrix{Float64},
-                 X_new::Matrix{Float64})
+                 X_new::Matrix{Float64};response::String="mean")
 
   const n_new = size(X_new,1)
   const n_old = size(X_old,1)
@@ -121,39 +110,30 @@ function predict(post::Vector{Vector{Float64}},
   const D_old = D[n_new+1:end,n_new+1:end]
   const D_new_old = D[1:n_new,n_new+1:end]
   const Iₙ = eye(n_old)
+  const Iₘ = eye(n_new)
 
   function pred(param::Vector{Float64})
     const sig2 = param[1]
     const phi = param[2]
     const a = param[3]
 
-    const K_new = exp_cov(D_new, phi, a)
-    const K_old = exp_cov(D_old, phi, a)
-    #const M = inv(sig2*Iₙ + K_old)
-    const M = inv(K_old)
+    const K_new = sym(exp_cov(D_new, phi, a))
+    const K_old = sym(exp_cov(D_old, phi, a))
+    # Note that Cov(y*,y) = Cov(f*,f) = Cov(f*,y) because y=f+ϵ and Cov(ϵᵢ,ϵⱼ)=0
     const C = exp_cov(D_new_old, phi, a)
+    const MVN = if response == "obs"
+      # y* | y
+      CondNormal(y, zeros(n_old), zeros(n_new), 
+                 sig2*Iₙ+K_old, sig2*Iₘ+K_new, C)
+    else # default response is mean function f
+      # f* | y
+      # Note: (f*,y) ~ N(0, G)
+      # where G11= K*, G12=C, G22=σ²Iₙ+K, and C is written above in code.
+      CondNormal(y, zeros(n_old), zeros(n_new), 
+                 sig2*Iₙ+K_old, K_new, C)
+    end
 
-    return rand( MvNormal(C*M*y, sym(K_new-C*M*C')) )
-  end
-
-  return hcat(map(p->pred(p), post)...)
-end
-
-function predict_mean(post::Vector{Vector{Float64}},
-                 y::Vector{Float64}, X::Matrix{Float64})
-
-  const n= size(X,1)
-  const D = pairwise(dist, X')
-  const Iₙ = eye(n)
-
-  function pred(param::Vector{Float64})
-    const sig2 = param[1]
-    const phi = param[2]
-    const a = param[3]
-
-    const K= exp_cov(D, phi, a)
-    const S = sym(inv(Iₙ/sig2 + inv(K)))
-    return rand( MvNormal(S*y/sig2, S) )
+    return rand( MVN )
   end
 
   return hcat(map(p->pred(p), post)...)

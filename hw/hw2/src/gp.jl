@@ -21,14 +21,14 @@ R"plotPosts($params,cnames=c(paste0('sig2 (truth=',$sig2_truth,')'),'phi','alpha
 n_new = 100;
 X_new = reshape(Vector(linspace(-2,2,n_new)),n_new,1);
 f = vec(g(X_new));
-@time pred = GP.predict(out, y, X, X_new);
+@time pred = GP.predict(out, y, X, X_new, response="mean");
 
 ex = mean(pred,2)
 ci = mapslices(p -> quantile(p,[.025,.975]),pred,2)
 
-R"plot($X,$y,pch=20,col='red',ylim=range($ci),xlim=range($X_new))";
+R"plot($X,$y,pch=20,col='red',ylim=range($ci),xlim=range($X_new),main='Mean Function')";
 R"lines($X_new,$ex,col='blue',lwd=2)";
-R"lines($X_new,$f,col='grey',pch=20, lwd=2, lty=2)";
+R"lines($X_new,$f,col='grey',lwd=2,lty=2)";
 R"color.btwn($X_new, $ci[,1], $ci[,2], from=-4, to=4, col=rgb(0,0,.5,.2))";
 
 #=
