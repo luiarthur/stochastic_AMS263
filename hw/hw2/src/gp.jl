@@ -27,7 +27,7 @@ ex = mean(pred,2)
 ci = mapslices(p -> quantile(p,[.025,.975]),pred,2)
 
 R"plot($X,$y,pch=20,col='red',ylim=range($ci),xlim=range($X_new))";
-R"lines($X_new,$ex,col='blue',pch=20, lwd=2)";
+R"lines($X_new,$ex,col='blue',lwd=2)";
 R"lines($X_new,$f,col='grey',pch=20, lwd=2, lty=2)";
 R"color.btwn($X_new, $ci[,1], $ci[,2], from=-4, to=4, col=rgb(0,0,.5,.2))";
 

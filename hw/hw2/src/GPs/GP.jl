@@ -99,6 +99,7 @@ end
 
 sym(M::Matrix{Float64}) = (M + M') / 2
 
+# predict function at new location
 function predict(post::Vector{Vector{Float64}},
                  y::Vector{Float64}, X_old::Matrix{Float64},
                  X_new::Matrix{Float64})
@@ -118,8 +119,10 @@ function predict(post::Vector{Vector{Float64}},
 
     const K_new = exp_cov(D_new, phi, a)
     const K_old = exp_cov(D_old, phi, a)
-    const M = inv(sig2*Iₙ + K_old)
+    #const M = inv(sig2*Iₙ + K_old)
+    const M = inv(K_old)
     const C = exp_cov(D_new_old, phi, a)
+
     return rand( MvNormal(C*M*y, sym(K_new-C*M*C')) )
   end
 

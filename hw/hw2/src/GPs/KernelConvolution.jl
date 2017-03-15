@@ -123,8 +123,10 @@ function predict(post::Vector{Vector{Float64}},
 
 
   function pred(sig2::Float64, tau2::Float64)
-    const S = C * sym(inv(sig2*I_new + KKT_new*tau2))
-    return rand( MvNormal(S*y, sym(sig2*I_new + KKT*tau2 - S*C')) )
+    const M = inv(sig2*Iₙ + KKT*tau2)
+    return rand(MvNormal(C'*M*y, 
+                          sym(sig2*I_new+KKT_new*tau2)))
+                          #sym(sig2*I_new+KKT_new*tau2 - C'*M*C)))
     #return rand( MvNormal(sig2*Iₙ + KKT*tau2) )
   end
 
