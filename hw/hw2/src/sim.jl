@@ -54,3 +54,7 @@ plot_res <- function (X,y,X_new,f_new,pred,u=NA,...) {
 R"plot_res($X,$y,$X_new,$f_new,$pred_gp,ylim=c(-.2,2),main='GP Mean Function')"
 R"plot_res($X,$y,$X_new,$f_new,$pred_kc,ylim=c(-.2,2),u=$u,main='KC Mean Function')"
 R"plot_res($X,$y,$X_new,$f_new,$pred_pp,ylim=c(-.2,2),u=$u,main='PP Mean Function')"
+
+#=
+include("sim.jl")
+=#
