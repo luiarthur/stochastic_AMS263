@@ -4,12 +4,12 @@ username="alui2"
 server="citrisdance"
 
 # send
-#ssh -Y $username@$server.soe.ucsc.edu <<-EOSSH
-#  source ~/.bashrc
-#  cd ~/repo/stochastic_AMS263/hw/hw2/src
-#  git pull
-#  julia sim.jl
-#EOSSH
+ssh -Y $username@$server.soe.ucsc.edu <<-EOSSH
+  source ~/.bashrc
+  cd ~/repo/stochastic_AMS263/hw/hw2/src
+  git pull
+  ./$JULIA_HOME/julia sim.jl
+EOSSH
 
 # get
 cd ../img
