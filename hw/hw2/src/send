@@ -1,8 +1,20 @@
 #!/bin/bash
 
 username="alui2"
-server="grape"
+server="citrisdance"
 
-ssh -Y $username$server.soe.ucsc.edu <<-EOSSH
-
+# send
+ssh -Y $username@$server.soe.ucsc.edu <<-EOSSH
+  cd ~/repo/stochastic_AMS263/hw/hw2/src
+  git pull
+  julia sim.jl
 EOSSH
+
+# get
+cd ../img
+sftp $username@$server.soe.ucsc.edu <<-EOSSH
+  get -r /soe/$username/repo/stochastic_AMS263/hw/hw2/img/ tmp
+EOSSH
+mv -f tmp/* ./
+rm -rf tmp
+
