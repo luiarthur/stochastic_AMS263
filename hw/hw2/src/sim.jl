@@ -11,8 +11,8 @@ g(X::Matrix{Float64}) = .3 + .4*X + .5*sin(2.7*X) + 1.1 ./ (1+X.^2)
 toInt(x::Float64) = convert(Int, floor(x))
 seq(a::Float64, b::Float64, n::Int) = reshape(Vector(linspace(a,b,n)),n,1)
 
-n = 30 # 1000
-MCMC_its = 300 # 5000
+n = 1000
+MCMC_its = 5000
 m = toInt(sqrt(n))
 X = sort(randn(n,1),1)
 sig2_truth = .01
