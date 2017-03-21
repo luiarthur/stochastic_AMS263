@@ -8,7 +8,7 @@ ssh -Y $username@$server.soe.ucsc.edu <<-EOSSH
   source ~/.bashrc
   cd ~/repo/stochastic_AMS263/hw/hw2/src
   git pull
-  ./soe/$username/programs/julia-0.5.0/bin/julia sim.jl
+  julia sim.jl
 EOSSH
 
 # get
