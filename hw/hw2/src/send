@@ -1,0 +1,8 @@
+#!/bin/bash
+
+username="alui2"
+server="grape"
+
+ssh -Y $username$server.soe.ucsc.edu <<-EOSSH
+
+EOSSH
