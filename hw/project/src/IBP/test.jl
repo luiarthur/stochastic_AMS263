@@ -34,7 +34,7 @@ println("Start MCMC...")
                     cs_v=eye(K), A_true=A*1.)
 cs_v = cov(hcat(unique(map(o->o.v, tmp))...)') + eye(K)*.1
 
-@time out = LFM.fit(X,K=K,B=1000,burn=1000,printFreq=1,
+@time out = LFM.fit(X,K=K,B=100,burn=100,printFreq=1,
                     init=tmp[end], cs_v=cs_v*1)
 
 sig2_out = map(o -> o.sig2, out)
@@ -50,6 +50,7 @@ R"plotPosts($v_out[,7:10])";
 Z_out = map(o -> o.Z, out)
 Z_mean = reduce(+, Z_out) / length(Z_out)
 Z_true_ext = hcat(Z_true, zeros(N,K-size(Z_true,2)))
+IBP.plot(Z_mean)
 IBP.plot(Z_mean-Z_true_ext)
 A_out = map( o -> o.A, out)
 A_mean = reduce(+, A_out) / length(A_out)

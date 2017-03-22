@@ -7,6 +7,7 @@ module LFM # Latent Feature Model
 
 using Distributions
 include("../../../MCMC/MCMC.jl")
+include("IBP.jl")
 
 immutable State
   A::Matrix{Float64}
