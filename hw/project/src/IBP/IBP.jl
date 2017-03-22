@@ -7,6 +7,8 @@ R"library(rcommon)";
 
 export randIBP
 
+lof(Z::Matrix{Int64}) = sortcols(Z,rev=true)
+
 function randIBP(alpha::Float64, N::Int, K::Int=20)
 
   const v = rand(Beta(alpha,1), K)
@@ -30,6 +32,8 @@ R"plotPost($stat)"
 for i in 1:1000
   plot(Zs[i],show_y_axis=false, show_x_axis=false)
 end
+
+
 =#
 
 end

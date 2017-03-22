@@ -34,7 +34,7 @@ println("Start MCMC...")
                     cs_v=eye(K), A_true=A*1.)
 cs_v = cov(hcat(unique(map(o->o.v, tmp))...)') + eye(K)*.1
 
-@time out = LFM.fit(X,K=K,B=1000,burn=1000,printFreq=1,A_true=A*1.,
+@time out = LFM.fit(X,K=K,B=1000,burn=1000,printFreq=1,
                     init=tmp[end], cs_v=cs_v*1)
 
 sig2_out = map(o -> o.sig2, out)

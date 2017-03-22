@@ -102,7 +102,8 @@ function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, burn::Int=100,
         end
       end
 
-      Z
+      #Z
+      IBP.lof(Z) # necessary?
     end
 
     return State(A, sig2, alpha, v, Z)
