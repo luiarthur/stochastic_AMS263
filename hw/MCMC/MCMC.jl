@@ -85,6 +85,45 @@ end
 lp_logit_unif(logit_u::Float64) = logpdf(Logistic(), logit_u)
 
 
+sym(M::Matrix{Float64}) = (M + M') / 2
+
+# Distribution of y|x
+function CondNormal(x::Vector{Float64}, μx::Vector{Float64}, μy::Vector{Float64}, 
+                    Σx::Matrix{Float64}, Σy::Matrix{Float64}, Σyx::Matrix{Float64})
+
+  const S = Σyx * inv(sym(Σx))
+
+  return MvNormal(μy + S*(x-μx), sym(Σy-S*Σyx'))
+end
+
+"""
+Model:
+     y | β,X ~ Nₙ(Xβ, Σ)
+         β   ~ Nₚ(β₀, V)
+
+=>  y* | β,X ~ Nₙ₊ₚ(X* β, Σ*)
+       p(β)  ∝ 1
+
+where X* = X  , Σ* = Σ  0, and y* = y
+           Iₚ        0  V           β₀
+
+∴     β | y,X ~ N( (X*Σ*⁻¹X*)⁻¹X*'y* , (X*Σ*⁻¹X*)⁻¹)
+"""
+function β_post(y::Vector{Float64},  X::Matrix{Float64}, Σ::Matrix{Float64},
+                β₀::Vector{Float64}, V::Matrix{Float64})
+
+  const (N,P) = size(X)
+  const zeroNP = zeros(N,P)
+
+  const y1 = [y; β₀]
+  const X1 = vcat(X,eye(P))
+  const Σ1i = inv(vcat(hcat(Σ, zeroNP), hcat(zeroNP', V)))
+  const Vi = sym(inv(X1' * Σ1i * X1))
+
+  return MvNormal(Vi*X1'*y1, Vi)
+end
+
+
 """
 autotune(accept::Float64, target::Float64=0.25, k::Float64=2.5)
 

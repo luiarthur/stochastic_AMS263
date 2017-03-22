@@ -1,7 +1,7 @@
 #!/bin/bash
 
 username="alui2"
-server="citrisdance"
+server="grape"
 
 # send
 #ssh -Y $username@$server.soe.ucsc.edu <<-EOSSH
