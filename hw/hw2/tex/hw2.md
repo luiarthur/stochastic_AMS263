@@ -65,21 +65,24 @@ in three different models: (1) Gaussian process, (2) kernel convolution, and
 ## Gaussian Process
 \beginmyfig
 \includegraphics[height=1\textwidth]{../img/paramGP.pdf}
-\caption{Original Gaussian Process}
+\caption{Original Gaussian Process. The model here is 
+$\bm{y} \sim \N_n(\bm 0, \bm{K}(\bm{x}; \phi,\alpha) + \sigma^2\I_n)$.}
 \label{fig:paramGP}
 \endmyfig
 
 ## Kernel Convolution
 \beginmyfig
 \includegraphics[height=1\textwidth]{../img/paramKC.pdf}
-\caption{Kernel Convolution}
+\caption{Kernel Convolution. Note that the kernel chosen was a
+Normal(0,$\phi$). And the number of knot points was $m=33$. $\tau^2\I_m$ was
+the covariance matrix of the white noise process.}
 \label{fig:paramKC}
 \endmyfig
 
 ## Predictive Process
 \beginmyfig
 \includegraphics[height=1\textwidth]{../img/paramPP.pdf}
-\caption{Predictive Process}
+\caption{Predictive Process. Number of knot points used was again 33.}
 \label{fig:paramPP}
 \endmyfig
 
