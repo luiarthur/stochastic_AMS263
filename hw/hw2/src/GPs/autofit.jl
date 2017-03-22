@@ -42,4 +42,15 @@ function AUTOFIT(f, B::Int, dim::Int;
   return adjust(eye(dim))
 end
 
-
+"""
+Sharman-Woodbury Inverse
+see: http://luiarthur.github.io/ucsc_notes/advBayesComputing/17/
+"""
+function sw_inv(sig2::Float64, C::Matrix{Float64}, K::Matrix{Float64})
+  const N = size(C,1)
+  return eye(N)/sig2 - C/sig2 *inv(K+ C'C/sig2)* C'/sig2
+end
+function sw_logdet(sig2::Float64, C::Matrix{Float64}, K::Matrix{Float64})
+  const N = size(C,1)
+  return logdet(K + C'C/sig2) + N*log(sig2) - logdet(K)
+end

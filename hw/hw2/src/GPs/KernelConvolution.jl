@@ -29,11 +29,12 @@ function fit(y::Vector{Float64}, X::Matrix{Float64}, u::Matrix{Float64},
   function update(param::Vector{Float64})
     function ll(log_v::Vector{Float64})
       const sig2 = exp(log_v[1])
-      const tau2 = exp(log_v[2])
+      const tau2 = exp(log_v[2]) * Iₘ
       const phi = exp(log_v[3])
       const M = [ kernel(dist(X[i,:],u[j,:]),phi) for i in 1:n, j in 1:m ]
 
-      return logpdf(MvNormal(sym(tau2*M*M'+ sig2*Iₙ)), y)
+      return -.5 * (sw_logdet(sig2,M,tau2) + y' * sw_inv(sig2,M,tau2) * y)[1]
+      #return logpdf(MvNormal(sym(tau2*M*M'+ sig2*Iₙ)), y)
     end
 
     function lp(log_v::Vector{Float64})
