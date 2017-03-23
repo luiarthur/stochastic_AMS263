@@ -26,6 +26,8 @@
 \newcommand{\bk}[1]{\left[#1\right]}
 \newcommand{\bc}[1]{ \left\{#1\right\} }
 \newcommand{\abs}[1]{ \left|#1\right| }
+\def\I{\bm I}
+\def\N{\mathcal N}
 \newcommand{\mat}{ \begin{pmatrix} }
 \newcommand{\tam}{ \end{pmatrix} }
 
@@ -270,15 +272,86 @@
 
   Generate observation matrix $\bm X$ from a random binary
   matrix $\bm Z$, the latent features matrix $\bm A$, and 
-  gaussian noise. i.e. generate
+  gaussian noise $\bm \epsilon$. i.e. generate
 
   $$
   \bm {X = ZA + \epsilon}
   $$
 
   where $X$ is $N\times D$, $Z$ is $N\times K$, and 
-  $A$ is $K \times D$.
+  $A$ is $K \times D$. $(N=100, D=36, K=4)$
 
+  \vspace{5mm}
+  Each row in $\bm A$ is a 36-dimesnional vector which
+  represents one of the $6\times6$ image.
+
+  \vspace{5mm}
+  $Z_{ik}=1$ indicates that feature $k$ is in observation $i$.
+  Each observation can be comprised of multiple features.
+
+  \vspace{5mm}
+  \textbf{Goal:} Recover $\bm Z$ and $\bm A$.
+}
+
+\frame{ %
+  \frametitle{Toy Example}
+  \vspace{5mm}
+
+  \textbf{Model}
+  \vspace{5mm}
+
+  $$
+  \begin{aligned}
+    \bm X \mid \bm Z, \bm A &\sim \N(\bm{ZA}, \sigma^2_X I_N, \sigma^2_XI_D) \\
+    \bm A &\sim \N(\bm 0, \sigma^2_A\I_K,\sigma^2_A\I_D) \\
+    \bm Z \mid \alpha &\sim \text{IBP}(\alpha) \\
+    \alpha &\sim \text{Gamma}(a,b)\\
+  \end{aligned}
+  $$
+
+  Priors can be placed on $\sigma_A^2$ and $\sigma_X^2$.
+  \vspace{5mm}
+
+  Note that $\bm A$ can be analytically integrated out, to 
+  yield $p(\bm{X\mid Z})$. A posterior mean for $\bm A$ 
+  is then 
+
+  $$
+  E[\bm A \mid \bm X] = \p{\bm Z' \bm Z + 
+  \frac{\sigma_X^2}{\sigma_A^2}\I}^{-1} \bm {Z'X}.
+  $$
+}
+
+\frame{ %
+  \frametitle{Toy Example}
+  \vspace{5mm}
+
+  \textbf{Model}
+  \vspace{5mm}
+
+  $$
+  \begin{aligned}
+    \bm X \mid \bm Z, \bm A &\sim \N(\bm{ZA}, \sigma^2_X I_N, \sigma^2_XI_D) \\
+    \bm A &\sim \N(\bm 0, \sigma^2_A\I_K,\sigma^2_A\I_D) \\
+    z_{ik} &\sim \text{Bernoulli}\p{\prod_{l=1}^k v_l} \\
+    v_l &\sim \text{Beta}(\alpha,1) \\
+    \alpha &\sim \text{Gamma}(a,b)\\
+  \end{aligned}
+  $$
+
+  Priors can be placed on $\sigma_A^2$ and $\sigma_X^2$.
+  \vspace{5mm}
+
+}
+
+
+\frame{ %
+  \frametitle{Results}
+  \vspace{5mm}
+  %\beginmyfig
+  %  \includegraphics[scale=.4]{../img/Z.pdf}
+  %  %\caption{Put Caption Here}
+  %\endmyfig
 }
 
 
