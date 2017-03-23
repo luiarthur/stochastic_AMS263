@@ -72,15 +72,22 @@ end
 A_est = map(estA, Z_out)
 A_mean = reduce(+, A_est) / length(A_est)
 
-IBP.plot(reshape(A_mean[1,:],6,6))
-IBP.plot(reshape(A_mean[2,:],6,6))
-IBP.plot(reshape(A_mean[3,:],6,6))
-IBP.plot(reshape(A_mean[4,:],6,6))
-IBP.plot(reshape(A_mean[5,:],6,6))
-IBP.plot(reshape(A_mean[6,:],6,6))
-IBP.plot(reshape(A_mean[7,:],6,6))
-IBP.plot(reshape(A_mean[8,:],6,6))
-IBP.plot(reshape(A_mean[9,:],6,6))
+
+R"pdf('../../tex/img/post.pdf')";
+R"par.mar <- par()$mar"
+R"par(mfrow=c(4,3),mar=c(2,2,2,2))"
+IBP.plot(reshape(A_mean[1,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[2,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[3,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[4,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[5,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[6,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[7,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[8,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[9,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+IBP.plot(reshape(A_mean[10,:],6,6),yaxt="n",xaxt="n",xlab="",ylab="")
+R"par(mfrow=c(1,1),mar=par.mar)"
+R"dev.off()";
 
 #=
 include("test.jl")
