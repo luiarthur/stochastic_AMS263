@@ -31,11 +31,13 @@ println("Start MCMC...")
 
 # BURN-IN
 @time tmp = LFM.fit(X,K=K,B=100,burn=0,printFreq=1,
-                    cs_v=eye(K), A_true=A*1.)
+                    sig2_true=sig2_true,
+                    cs_v=eye(K))
 cs_v = cov(hcat(unique(map(o->o.v, tmp))...)') + eye(K)*.1
 
-@time out = LFM.fit(X,K=K,B=100,burn=100,printFreq=1,
-                    init=tmp[end], cs_v=cs_v*1)
+@time out = LFM.fit(X,K=K,B=500,burn=1000,printFreq=1,
+                    sig2_true=sig2_true,
+                    init=tmp[end],cs_v=cs_v)
 
 sig2_out = map(o -> o.sig2, out)
 R"plotPost($sig2_out)";
@@ -51,11 +53,14 @@ Z_out = map(o -> o.Z, out)
 Z_mean = reduce(+, Z_out) / length(Z_out)
 Z_true_ext = hcat(Z_true, zeros(N,K-size(Z_true,2)))
 IBP.plot(Z_mean)
+IBP.plot(Z_mean[:,1:4])
+IBP.plot(Z_mean[:,1:4]-Z_true)
+IBP.plot(Z_true)
 IBP.plot(Z_mean-Z_true_ext)
-A_out = map( o -> o.A, out)
-A_mean = reduce(+, A_out) / length(A_out)
-IBP.plot(A_mean)
-IBP.plot(A)
+#A_out = map( o -> o.A, out)
+#A_mean = reduce(+, A_out) / length(A_out)
+#IBP.plot(A_mean)
+#IBP.plot(A)
 
 
 #=

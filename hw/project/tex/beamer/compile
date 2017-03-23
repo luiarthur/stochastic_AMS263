@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pdflatex ibp.tex
+bibtex ibp.aux
+pdflatex ibp.tex
+pdflatex ibp.tex
+rm -f *.{log,aux,nav,out,snm,toc,bbl,blg}

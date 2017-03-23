@@ -10,31 +10,38 @@ include("../../../MCMC/MCMC.jl")
 include("IBP.jl")
 
 immutable State
-  A::Matrix{Float64}
+  #A::Matrix{Float64}
   sig2::Float64
   alpha::Float64
   v::Vector{Float64}
   Z::Matrix{Int64}
 end
 
-const nullState = State(zeros(0,0), 0.0, 0.0, ones(0), ones(Int64,0,0))
+#const nullState = State(zeros(0,0), 0.0, 0.0, ones(0), ones(Int64,0,0))
+const nullState = State(0.0, 0.0, ones(0), ones(Int64,0,0))
 const nullA = zeros(0,0)
 
-function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, burn::Int=100,
+function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, 
+             burn::Int=100,
              init::State=nullState, printFreq::Int=0, 
              a_sig::Float64=2.0, b_sig::Float64=1.0,
-             a_a::Float64=1.0, b_a::Float64=.1, cs_a::Float64=1.0,
+             a_a::Float64=1.0, b_a::Float64=.1, 
+             cs_a::Float64=1.0, cs_sig::Float64=1.0,
              cs_v::Matrix{Float64}=zeros(0,0),
-             A_true::Matrix{Float64}=nullA)
+             sig2_true::Float64=0.0)#,
+             #A_true::Matrix{Float64}=nullA)
 
   const (N,D) = size(X)
   const x = vec(X)
   const I_D = eye(D)
+  const I_K = eye(K)
+  const I_N = eye(N)
   const I_ND = eye(N*D)
 
-  # prior β
-  const zero_KD = zeros(K*D)
-  const V_A = eye(K*D)*1E10
+  # prior A
+  #const zero_KD = zeros(K*D)
+  const sig2_A = 10.0
+  const V_A = eye(K*D)*sig2_A
 
   # Candidate Sigma for v (vector)
   const CS_V = if cs_v == zeros(0,0)
@@ -43,18 +50,35 @@ function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, burn::Int=100,
     cs_v
   end
 
+  function lpX(Z::Matrix{Int64}, sig2::Float64)
+    const c = -(N-K)*D/2 * log(sig2) - 
+              D/2 * logdet(Z'Z+(sig2/sig2_A)*I_K)
+    const EXP = -.5/sig2 * trace(
+                X'*(I_N - Z*inv(Z'Z+I_K*sig2/sig2_A)*Z')*X  
+                )
+    return c + EXP
+  end
+
   function update(state::State)
     # A: Gibbs
-    const A = if A_true != nullA
-      vcat(A_true,zeros(K-size(A_true,1),D))
-    else
-      reshape(rand(MCMC.β_post(x, kron(I_D,state.Z), I_ND*state.sig2, 
-                               zero_KD, V_A)), K,D)
-    end
+    #const A = if A_true != nullA
+    #  vcat(A_true,zeros(K-size(A_true,1),D))
+    #else
+    #  reshape(rand(MCMC.β_post(x, kron(I_D,state.Z), I_ND*state.sig2, 
+    #                           zero_KD, V_A)), K,D)
+    #end
 
     # σ²: Gibbs
-    const sig2 = rand(InverseGamma(a_sig + N*D/2, 
-                                   b_sig + (vec(X-state.Z*A)'vec(X-state.Z*A)/2)[1]))
+    const sig2 = if sig2_true == 0.0
+      lps(ls2::Float64) = MCMC.lp_log_invgamma(ls2,a_sig,b_sig)
+      lls(ls2::Float64) = lpX(state.Z, exp(ls2))
+      exp( MCMC.metropolis(log(state.sig2),cs_sig,lls,lps) )
+    else
+      sig2_true
+    end
+
+    #const sig2 = rand(InverseGamma(a_sig + N*D/2, 
+    #                               b_sig + (vec(X-state.Z*A)'vec(X-state.Z*A)/2)[1]))
 
     # α: Metropolis
     const alpha = let
@@ -85,8 +109,9 @@ function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, burn::Int=100,
     const Z = let
       function log_kern(j::Int, i::Int, k::Int, Z::Matrix{Int64})
         Z[i,k] = j
-        const y = x - vec(Z*A)
-        (-y'y/2sig2)[1]
+        lpX(Z,sig2)
+        #const y = x - vec(Z*A)
+        #(-y'y/2sig2)[1]
       end
 
       const b = cumprod(v)
@@ -103,15 +128,17 @@ function fit(X::Matrix{Float64}; K::Int=100, B::Int=1000, burn::Int=100,
         end
       end
 
-      #Z
-      IBP.lof(Z) # necessary?
+      Z
+      #IBP.lof(Z) # necessary?
     end
 
-    return State(A, sig2, alpha, v, Z)
+    #return State(A, sig2, alpha, v, Z)
+    return State(sig2, alpha, v, Z)
   end
 
   const INIT = if init == nullState
-    State(zeros(K,D), 1.0, 1.0, rand(K), rand(0:1,N,K))
+    #State(zeros(K,D), 1.0, 1.0, rand(K), rand(0:1,N,K))
+    State(1.0, 1.0, rand(K), rand(0:1,N,K))
   else
     init
   end
