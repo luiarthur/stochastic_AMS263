@@ -177,6 +177,84 @@ This representation was adopted in the dependent IBP by Williamson et al.
 
 # Toy Example
 
-I now introduce
+I will now show an example where the underlying data-generating structure in a
+latent feature model is learned from an observation matrix.  Refer to the
+previously discussed model:
 
+$$
+\X = \Z\A + \epsilon.
+$$
 
+By placing the appropriate priors, we have the Bayesian model:
+
+$$
+  \begin{aligned}
+    \bm X \mid \bm Z, \bm A &\sim \N(\bm{ZA}, \sigma^2_X I_N, \sigma^2_XI_D) \\
+    \bm A &\sim \N(\bm 0, \sigma^2_A\I_K,\sigma^2_A\I_D) \\
+    \bm Z \mid \alpha &\sim \text{IBP}(\alpha) \\
+    \alpha &\sim \text{Gamma}(a,b).\\
+  \end{aligned}
+$$
+
+MCMC can be used to simulate from the posterior distribution of the parameters.
+This model can be further simplified by integrating out matrix $\A$ to yield the
+marginal likelihood $p(\X\mid\A)$. Also, it can be shown that
+$p(z_{ik}=1\mid \bm z_{-i,k})=\ds\frac{m_{-ik}}{N}$. So, 
+$p(z_{ik}=1\mid \bm Z_{-i,k}, \X)= p(\X\mid\Z)p(\bm z_{i,k} | \Z_{-i,k})$.
+Note that the likelihood term $p(\X\mid\Z)$ involves a matrix inverse which
+need not be computed upon each update of $\Z$. Details are discussed in 
+the paper by @griffiths2011indian.
+
+This model was fit to a simulated data set with each row in the $\A$ matrix being 
+one of the $6\times6$ Figure in \ref{A} after being compressed into a 
+36-dimensional vector.
+
+![Latent Features](../img/A.pdf){id="A" height=30%}
+
+The $\Z$ matrix is a random $100\times36$ binary matrix. $\X$ is constructed
+by multiplying $\Z$ by $\A$ and adding random matrix normal noise. The parameters
+to be estimated are $\Z,\A$, and $\alpha$. Priors can be specified for 
+$\sigma_X^2$ and $\sigma_A^2$, but were assumed to be known in this analysis for
+simplicity.
+
+The matrix $\A$ was integrated out analytically but its posterior mean can be
+estimated post-analysis to be 
+
+$$
+E[\bm A \mid \bm X] = \p{\bm Z' \bm Z + 
+\frac{\sigma_X^2}{\sigma_A^2}\I}^{-1} \bm {Z'X}.
+$$
+
+# Results
+
+My analysis was unsuccessful (due to coding errors) but the paper of the author
+of this toy-example claims that the simulation should recover the original
+latent features (the four images). In my simulation, 9 latent
+features were learned and they are shown in Figure \ref{post}
+
+![Posterior mean for $\A$](../img/post.pdf){id="post" height=30%}
+
+The posterior latent features are a linear combination of the original latent
+features. (But, they should be the original 4 features...) The MCMC was written
+in Julia, and 1500 iterations took 40 minutes. But as mentioned previously, this
+can be sped up by using particular identities for matrix inverses.
+
+# Estimating $K$
+
+The number of columns in $\Z$ were fixed to be 10 in this analysis, but it need not
+be. Slice sampling has been recommended for use in the stick-breaking construction
+by @teh2007stick. Reversible jump algorithms can also be considered.
+
+# Other Applications
+
+The use of the IBP has been successful in areas like genomic research, protein
+interaction modeling, and relational data modeling. @griffiths2011indian
+discusses these examples briefly.
+
+# Conclusions
+
+The IBP serves as a flexible prior distribution to be used in latent feature
+models. The number of features need not be fixed in advanced as it can be
+learned from the data. Slice sampling can be used to learn the number of 
+latent features without resorting to reversible jump. This is made
+possible by the stick-breaking construction of the IBP.
