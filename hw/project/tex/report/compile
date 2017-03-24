@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# -s        =>  create standalone file (in this case report.tex latex file)
+# --toc     =>  create table of contents
+# --natbib  =>  use the natbib package in latex
+# -o        =>  output file name
+
+pandoc ibpReport.md -s -o ibpReport.tex
+
+pdflatex ibpReport.tex
+bibtex ibpReport.aux
+pdflatex ibpReport.tex
+pdflatex ibpReport.tex
+rm -f *.{log,aux,nav,out,snm,toc,blg,bbl}
+rm -f ibpReport.tex
+
