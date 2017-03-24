@@ -5,7 +5,7 @@
 # --natbib  =>  use the natbib package in latex
 # -o        =>  output file name
 
-pandoc ibpReport.md -s -o ibpReport.tex
+pandoc ibpReport.md -s --natbib -o ibpReport.tex
 
 pdflatex ibpReport.tex
 bibtex ibpReport.aux
