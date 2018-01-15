@@ -104,7 +104,7 @@ and predicted process underestimates the variability in the mean function.}
 
 ## Timings
 
-Note that the simulations were performed are a server so timings may vary according
+Note that the simulations were performed on a server so timings may vary according
 to the server usages. Also, in the metropolis step, an auto-tuner was used
 to determine the proposal step-size. Consequently, the burn-in was different 
 for each simulation and the simulation times included the burn-in time.
